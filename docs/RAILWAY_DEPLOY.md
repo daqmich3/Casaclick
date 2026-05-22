@@ -33,8 +33,10 @@ Add Google OAuth redirect:
 
 ## 4. Build vs start
 
-- **Build** (`railway.toml`): Composer, `npm run build`, JWT keys. No database migrations.
-- **Start** (`scripts/railway-start.sh`): migrations, then PHP server.
+- **Build** (`Dockerfile`): Composer, `npm run build`, JWT keys. No database migrations.
+- **Start** (`scripts/railway-start.sh`): migrations, then PHP built-in server on `$PORT`.
+
+`railway.toml` uses `builder = "DOCKERFILE"` (do not use the old `importmap:install` nginx Dockerfile).
 
 ## 5. Verify
 

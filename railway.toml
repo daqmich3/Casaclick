@@ -5,8 +5,8 @@
 # Migrations run on container start via scripts/railway-start.sh
 
 [build]
-builder = "nixpacks"
-buildCommand = "composer install --no-dev --optimize-autoloader --no-interaction --no-scripts && npm ci && npm run build && APP_ENV=prod php bin/console lexik:jwt:generate-keypair --skip-if-exists"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = "sh scripts/railway-start.sh"
