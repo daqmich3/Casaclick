@@ -90,9 +90,9 @@ class Payment
     public function setStatus(string $status): static
     {
         $this->status = $status;
-        if ($status === 'completed' && !$this->paidAt) {
-            $this->paidAt = new DateTimeImmutable();
-        }
+        // Bump sync revision when status changes (web/mobile live poll).
+        $this->paidAt = new DateTimeImmutable();
+
         return $this;
     }
 

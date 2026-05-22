@@ -82,6 +82,26 @@ class ActivityLogRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return array{count: int, latestUpdatedAt: ?string}
+     */
+    public function getGlobalSyncMeta(): array
+    {
+        $row = $this->createQueryBuilder('l')
+            ->select('COUNT(l.id) AS cnt', 'MAX(l.createdAt) AS maxUpdated')
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $max = $row['maxUpdated'] ?? null;
+
+        return [
+            'count' => (int) ($row['cnt'] ?? 0),
+            'latestUpdatedAt' => $max instanceof \DateTimeInterface
+                ? $max->format(\DateTimeInterface::ATOM)
+                : null,
+        ];
+    }
+
     public function findDistinctActions(): array
     {
         $results = $this->createQueryBuilder('l')

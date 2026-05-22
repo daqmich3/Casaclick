@@ -110,3 +110,9 @@ Run migrations manually:
 ```bash
 railway run php bin/console doctrine:migrations:migrate --no-interaction
 ```
+
+## 9. Real-time web ↔ mobile
+
+Web and mobile use the **same Railway MySQL**. Logged-in web pages poll `GET /sync/feed` every 5s and reload when bookings, payments, or listings change.
+
+Point the mobile app API base URL at your Railway domain (not `127.0.0.1`) and poll `GET /api/mobile/sync/revision` every ~5s with the JWT. See [MOBILE_APP_INTEGRATION.md](MOBILE_APP_INTEGRATION.md).

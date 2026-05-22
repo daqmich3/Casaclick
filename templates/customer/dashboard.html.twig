@@ -8,7 +8,7 @@
             <h1 class="cc-dash-title">Welcome, {{ user.name ?? user.email }}</h1>
             <p class="cc-dash-sub">Browse rentals, track bookings, and pay with Paymongo — no admin tools here.</p>
             <p class="text-muted" style="margin-top:8px;font-size:0.9rem;">
-                <span id="live-sync-badge" class="badge bg-success"><i class="fa fa-circle"></i> Live sync (~8s)</span>
+                <span id="live-sync-badge" class="badge bg-success"><i class="fa fa-circle"></i> Live sync (~5s)</span>
                 — changes from the mobile app appear here automatically.
             </p>
         </div>
@@ -62,24 +62,4 @@
         </div>
     </div>
 </div>
-<script>
-(function () {
-    const feedUrl = {{ path('app_customer_dashboard_feed')|json_encode|raw }};
-    let lastRevision = null;
-    function poll() {
-        fetch(feedUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!data.success) return;
-                if (lastRevision !== null && data.revision !== lastRevision) {
-                    window.location.reload();
-                }
-                lastRevision = data.revision;
-            })
-            .catch(function () {});
-    }
-    poll();
-    setInterval(poll, 8000);
-})();
-</script>
 {% endblock %}

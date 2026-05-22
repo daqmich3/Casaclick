@@ -14,3 +14,4 @@ import './styles/forms.css';
 import './styles/dashboard.css';
 import './styles/theme.css';
 import './js/cc-flash-dismiss.js';
+import './js/live-sync.js';

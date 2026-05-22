@@ -134,9 +134,57 @@ On the **website**, tenants use **Pay with Paymongo** on an approved booking (`/
 
 With `PAYMONGO_DEV_MOCK=1` and no secret key, `checkoutUrl` opens a local demo page; tap **Complete** to mark the payment paid.
 
-## 6. Synchronization with web
+## 6. Real-time sync with web (local + Railway)
 
-After actions on web (approve application, complete payment), call the same list/show endpoints again. There is a single database — no merge logic required on the device beyond normal refresh.
+Web and mobile share **one MySQL database**. When someone books, pays, or approves on either side, the other side should refresh within a few seconds.
+
+### Mobile (JWT)
+
+Poll while the app is open (recommended every **5 seconds**):
+
+```http
+GET /api/mobile/sync/revision
+Authorization: Bearer <token>
+```
+
+When `revision` changes, refetch the screens you are showing (`/api/mobile/customer/bookings`, listings, payments, etc.).
+
+**Production:** set the app base URL to your Railway host, e.g. `https://web-production-6bdab.up.railway.app` — not `127.0.0.1`.
+
+### Website (session cookie)
+
+Logged-in pages poll `GET /sync/feed` every **5 seconds** and reload automatically when data changes. No extra setup on Railway beyond a working `DATABASE_URL`.
+
+### Public listings (no login)
+
+```http
+GET /api/mobile/listings/revision
+```
+
+Poll every ~8s on browse screens; refetch `GET /api/mobile/listings` when the revision changes.
+
+After actions on web (approve application, complete payment), you can also pull to refresh; polling handles cross-device updates automatically.
+
+### Ready-made poll helper
+
+Copy [mobile-live-sync-poll.js](mobile-live-sync-poll.js) into your mobile project:
+
+```javascript
+import { startLiveSyncPoll, stopLiveSyncPoll } from './mobile-live-sync-poll';
+
+// After login:
+startLiveSyncPoll({
+  baseUrl: 'https://YOUR-APP.up.railway.app',
+  token,
+  onChange: async () => {
+    await reloadBookings();
+    await reloadPayments();
+  },
+});
+
+// On logout / unmount:
+stopLiveSyncPoll();
+```
 
 ## 7. Error handling
 

@@ -106,7 +106,7 @@ class PaymentRepository extends ServiceEntityRepository
     private function buildSyncMeta(User $user, string $side): array
     {
         $qb = $this->createQueryBuilder('p')
-            ->select('COUNT(p.id) AS cnt', 'MAX(p.createdAt) AS maxUpdated')
+            ->select('COUNT(p.id) AS cnt', 'MAX(COALESCE(p.paidAt, p.createdAt)) AS maxUpdated')
             ->join('p.application', 'a');
 
         if ($side === 'landlord') {

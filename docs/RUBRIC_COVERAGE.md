@@ -61,8 +61,8 @@ JSON shape is normalized: `success`, `data`, optional `meta`, `errors` / `error`
 ## 5. Mobile & web synchronization (10 pts)
 
 - Single **MySQL/Doctrine** database: web dashboard and API read/write the same `Application`, `Payment`, and `Product` rows.
-- **Near real-time:** Pull-to-refresh or screen focus reload from API; landlord actions (approve application, confirm payment) in web UI appear on next mobile fetch — no separate mobile database.
-- Optional: poll `GET .../bookings/{id}` or list endpoints after actions.
+- **Near real-time (5s):** Web polls `GET /sync/feed` (session); mobile polls `GET /api/mobile/sync/revision` (JWT). Same `LiveSyncRevisionService` on Railway and local.
+- Public browse: `GET /api/mobile/listings/revision` (~8s). Sample mobile poller: [mobile-live-sync-poll.js](mobile-live-sync-poll.js). Postman folder **Live sync**.
 
 ---
 

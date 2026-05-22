@@ -257,6 +257,45 @@
       ]
     },
     {
+      "name": "Live sync (mobile ↔ web)",
+      "description": "Poll every 5s while the app is open. When `revision` changes, refetch bookings/listings/payments. Website uses the same fingerprints via GET /sync/feed (session cookie).",
+      "item": [
+        {
+          "name": "Combined revision (JWT)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/mobile/sync/revision",
+            "description": "Bookings + payments + marketplace listings (+ notifications for tenants/landlords). Same logic as web GET /sync/feed."
+          }
+        },
+        {
+          "name": "Listings revision (public)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/mobile/listings/revision",
+            "description": "No auth. Poll ~8s on browse screens; refetch GET /api/mobile/listings when revision changes."
+          }
+        },
+        {
+          "name": "Applications revision (JWT)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/mobile/applications/revision"
+          }
+        }
+      ]
+    },
+    {
       "name": "Paymongo (tenant)",
       "item": [
         {

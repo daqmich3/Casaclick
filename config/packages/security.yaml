@@ -94,6 +94,7 @@ security:
         - { path: ^/payment, roles: ROLE_TENANT }
         - { path: ^/application, roles: ROLE_TENANT }
         - { path: ^/account, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/sync/, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/, roles: PUBLIC_ACCESS }
 
 when@test:

@@ -14,6 +14,7 @@ use App\Repository\ProductRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\UserRepository;
 use App\Service\ActivityLogService;
+use App\Service\LiveSyncRevisionService;
 use App\Service\EmailVerificationService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -507,40 +508,18 @@ class MobileApiController extends AbstractController
      * Poll every ~8s while USB-connected — same MySQL as the website.
      */
     #[Route('/sync/revision', name: 'sync_revision', methods: ['GET'])]
-    public function syncRevision(
-        ProductRepository $productRepository,
-        ApplicationRepository $applicationRepository,
-        PaymentRepository $paymentRepository,
-    ): JsonResponse {
+    public function syncRevision(LiveSyncRevisionService $liveSyncRevision): JsonResponse
+    {
         /** @var User|null $user */
         $user = $this->getUser();
         if (!$user) {
             return $this->json(['success' => false, 'error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $listingMeta = $productRepository->getApprovedMarketplaceSyncMeta();
-        $listingsRev = ProductRepository::buildSyncRevision($listingMeta['count'], $listingMeta['latestUpdatedAt']);
-
-        $appMeta = $this->isGranted('ROLE_LANDLORD')
-            ? $applicationRepository->getSyncMetaForLandlord($user)
-            : $applicationRepository->getSyncMetaForTenant($user);
-        $applicationsRev = ProductRepository::buildSyncRevision($appMeta['count'], $appMeta['latestUpdatedAt']);
-
-        $payMeta = $this->isGranted('ROLE_LANDLORD')
-            ? $paymentRepository->getSyncMetaForLandlord($user)
-            : $paymentRepository->getSyncMetaForTenant($user);
-        $paymentsRev = ProductRepository::buildSyncRevision($payMeta['count'], $payMeta['latestUpdatedAt']);
-
-        $combined = sha1($listingsRev . '|' . $applicationsRev . '|' . $paymentsRev);
-
-        return $this->json([
-            'success' => true,
-            'revision' => $combined,
-            'listings' => $listingsRev,
-            'applications' => $applicationsRev,
-            'payments' => $paymentsRev,
-            'serverTime' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
-        ]);
+        return $this->json(array_merge(
+            ['success' => true],
+            $liveSyncRevision->buildForUser($user),
+        ));
     }
 
     #[Route('/applications/revision', name: 'applications_revision', methods: ['GET'])]

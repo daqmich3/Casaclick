@@ -48,24 +48,4 @@
     </div>
     <p><a href="{{ path('app_admin') }}">← Back to Admin Area</a></p>
 </div>
-<script>
-(function () {
-    const feedUrl = {{ path('app_admin_bookings_feed')|json_encode|raw }};
-    let lastRevision = null;
-    function poll() {
-        fetch(feedUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!data.success) return;
-                if (lastRevision !== null && data.revision !== lastRevision) {
-                    window.location.reload();
-                }
-                lastRevision = data.revision;
-            })
-            .catch(function () {});
-    }
-    poll();
-    setInterval(poll, 8000);
-})();
-</script>
 {% endblock %}

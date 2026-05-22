@@ -7,6 +7,7 @@ use App\Repository\ApplicationRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\PaymentRepository;
 use App\Repository\ProductRepository;
+use App\Service\LiveSyncRevisionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -51,12 +52,8 @@ final class CustomerDashboardController extends AbstractController
 
     /** Live feed for customer web dashboard (poll ~8s — matches mobile USB sync). */
     #[Route('/dashboard/feed', name: 'app_customer_dashboard_feed', methods: ['GET'])]
-    public function dashboardFeed(
-        ApplicationRepository $applicationRepository,
-        PaymentRepository $paymentRepository,
-        ProductRepository $productRepository,
-        NotificationRepository $notificationRepository,
-    ): JsonResponse {
+    public function dashboardFeed(LiveSyncRevisionService $liveSyncRevision): JsonResponse
+    {
         $user = $this->getUser();
         if (!$user instanceof User) {
             return new JsonResponse(['success' => false], Response::HTTP_UNAUTHORIZED);
@@ -65,20 +62,9 @@ final class CustomerDashboardController extends AbstractController
             return new JsonResponse(['success' => false], Response::HTTP_FORBIDDEN);
         }
 
-        $appMeta = $applicationRepository->getSyncMetaForTenant($user);
-        $payMeta = $paymentRepository->getSyncMetaForTenant($user);
-        $listingMeta = $productRepository->getApprovedMarketplaceSyncMeta();
-        $revision = sha1(
-            ProductRepository::buildSyncRevision($listingMeta['count'], $listingMeta['latestUpdatedAt'])
-            . '|' . ProductRepository::buildSyncRevision($appMeta['count'], $appMeta['latestUpdatedAt'])
-            . '|' . ProductRepository::buildSyncRevision($payMeta['count'], $payMeta['latestUpdatedAt'])
-            . '|' . $notificationRepository->countUnreadByUser($user),
-        );
-
-        return new JsonResponse([
-            'success' => true,
-            'revision' => $revision,
-            'serverTime' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
-        ]);
+        return new JsonResponse(array_merge(
+            ['success' => true],
+            $liveSyncRevision->buildForUser($user),
+        ));
     }
 }

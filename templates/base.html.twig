@@ -255,6 +255,22 @@
             color: white;
         }
 
+        .live-sync-pill {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #2e7d32;
+            background: #e8f5e9;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-bottom: 4px;
+        }
+        .live-sync-pill .fa {
+            margin-right: 3px;
+        }
+
         /* Center main content — fluid gutters */
         .main-panel {
             margin-left: 260px;
@@ -408,7 +424,7 @@
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
-<body>
+<body{% block live_sync_attributes %}{% if app.user %} data-live-sync="1" data-live-sync-url="{{ path('app_sync_feed') }}" data-live-sync-interval="5000"{% endif %}{% endblock %}>
     <div class="wrapper">
         <!-- Sidebar -->
         <div class="sidebar" data-background-color="white" data-active-color="danger">
@@ -543,6 +559,7 @@
                     {{ app.user.name ?? app.user.email }}
                 </div>
                 <div class="user-role">
+                    <span class="live-sync-pill" title="Auto-refresh when mobile or another browser changes data"><i class="fa fa-refresh"></i> Live</span>
                     {% set primaryRole = app.user.primaryRole ?? 'ROLE_TENANT' %}
                     {% if primaryRole == 'ROLE_ADMIN' %}
                         <span class="user-role-badge admin">Admin</span>

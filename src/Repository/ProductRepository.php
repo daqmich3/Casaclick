@@ -191,6 +191,28 @@ class ProductRepository extends ServiceEntityRepository
      *
      * @return array{count: int, latestUpdatedAt: ?string}
      */
+    /**
+     * All listings (staff/admin dashboard + pending approvals).
+     *
+     * @return array{count: int, latestUpdatedAt: ?string}
+     */
+    public function getAllProductsSyncMeta(): array
+    {
+        $row = $this->createQueryBuilder('p')
+            ->select('COUNT(p.id) AS cnt', 'MAX(p.updatedAt) AS maxUpdated')
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $max = $row['maxUpdated'] ?? null;
+
+        return [
+            'count' => (int) ($row['cnt'] ?? 0),
+            'latestUpdatedAt' => $max instanceof \DateTimeInterface
+                ? $max->format(\DateTimeInterface::ATOM)
+                : null,
+        ];
+    }
+
     public function getOwnerListingsSyncMeta(int $userId): array
     {
         $row = $this->createQueryBuilder('p')
