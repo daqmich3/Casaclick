@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\BootstrapDemoDataService;
 use App\Service\BootstrapUsersService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -11,12 +12,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:bootstrap-users',
-    description: 'Create demo login accounts (admin, landlord, tenant) if they do not exist yet.',
+    description: 'Create demo users, categories, and approved listings (Railway / empty DB).',
 )]
 class BootstrapUsersCommand extends Command
 {
     public function __construct(
-        private readonly BootstrapUsersService $bootstrapUsers,
+        private readonly BootstrapDemoDataService $bootstrapDemo,
     ) {
         parent::__construct();
     }
@@ -26,17 +27,21 @@ class BootstrapUsersCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         try {
-            $created = $this->bootstrapUsers->ensureDemoUsers();
+            $result = $this->bootstrapDemo->ensureDemoEnvironment();
         } catch (\Throwable $e) {
             $io->error('Bootstrap failed: '.$e->getMessage());
 
             return Command::FAILURE;
         }
 
-        if ($created === []) {
-            $io->success('Demo accounts already exist — no changes made.');
-        } else {
-            $io->success('Created demo accounts: '.implode(', ', $created));
+        if ($result['users'] !== []) {
+            $io->success('Created users: '.implode(', ', $result['users']));
+        }
+        if ($result['listings'] > 0) {
+            $io->success(sprintf('Created %d approved listing(s) and %d categor(ies).', $result['listings'], $result['categories']));
+        }
+        if ($result['users'] === [] && $result['listings'] === 0) {
+            $io->success('Demo environment already present — no changes made.');
         }
 
         $io->table(

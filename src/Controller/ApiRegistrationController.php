@@ -86,9 +86,15 @@ class ApiRegistrationController extends AbstractController
         $user->setPassword($this->passwordHasher->hashPassword($user, (string) $data['password']));
         $user->setRoles(['ROLE_USER']);
 
-        $verificationToken = $this->emailVerificationService->generateVerificationToken();
-        $user->setVerificationToken($verificationToken);
-        $user->setEmailVerified(false);
+        $mailDisabled = $this->emailVerificationService->isMailTransportDisabled();
+        if ($mailDisabled) {
+            $user->setEmailVerified(true);
+            $user->setVerificationToken(null);
+        } else {
+            $verificationToken = $this->emailVerificationService->generateVerificationToken();
+            $user->setVerificationToken($verificationToken);
+            $user->setEmailVerified(false);
+        }
 
         $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
@@ -104,27 +110,35 @@ class ApiRegistrationController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $verificationUrl = $this->emailVerificationService->generateVerifyEmailUrl($verificationToken);
-
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         $emailSent = true;
         $mailError = null;
-        try {
-            $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
-        } catch (MailNotConfiguredException $e) {
-            $emailSent = false;
-            $mailError = $e->getMessage();
-        } catch (\Throwable $e) {
-            $emailSent = false;
+        if (!$mailDisabled) {
+            $verificationUrl = $this->emailVerificationService->generateVerifyEmailUrl(
+                (string) $user->getVerificationToken(),
+            );
+            try {
+                $this->emailVerificationService->sendVerificationEmail($user, $verificationUrl);
+            } catch (MailNotConfiguredException $e) {
+                $emailSent = false;
+                $mailError = $e->getMessage();
+                $user->setEmailVerified(true);
+                $user->setVerificationToken(null);
+                $this->entityManager->flush();
+            } catch (\Throwable $e) {
+                $emailSent = false;
+            }
         }
 
         return $this->json([
             'success' => true,
-            'message' => $emailSent
+            'message' => $mailDisabled || (!$emailSent && $user->isEmailVerified())
+                ? 'Registration successful. You can sign in now.'
+                : ($emailSent
                 ? 'Registration successful. Please check your email to verify your account.'
-                : ($mailError ?? 'Registration successful, but the verification email could not be sent. Configure MAILER_DSN and use resend verification.'),
+                : ($mailError ?? 'Registration successful, but the verification email could not be sent. Configure MAILER_DSN and use resend verification.')),
             'emailSent' => $emailSent,
             'user' => [
                 'id' => $user->getId(),

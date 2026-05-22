@@ -8,6 +8,8 @@
 
 ## 2. Required variables (web service)
 
+Full copy-paste template: [`.env.railway.example`](../.env.railway.example) in the repo root.
+
 | Variable | Example |
 |----------|---------|
 | `APP_ENV` | `prod` |
@@ -64,12 +66,16 @@ Common causes:
 - `landlord@example.com` / `landlord3333`
 - `tenant@example.com` / `tenant2222`
 
-## 7. Login accounts (automatic)
+## 7. Demo data (automatic — mirrors local `fixtures:load`)
 
 On each container start, `scripts/railway-start.sh` runs:
 
 1. `doctrine:migrations:migrate`
-2. `app:bootstrap-users` — creates demo accounts **only if missing**:
+2. `app:bootstrap-users` — demo **users**, **categories**, and **approved listings** (only if missing):
+
+**Listings:** 3 approved apartments with images from `public/uploads/images/` (bundled in Docker).
+
+**Accounts:**
 
 | Role | Email | Password |
 |------|--------|----------|

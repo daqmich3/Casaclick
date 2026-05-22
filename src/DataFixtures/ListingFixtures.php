@@ -36,21 +36,21 @@ class ListingFixtures extends Fixture implements DependentFixtureInterface
                 'price' => 12500.0,
                 'description' => 'Bright studio near Ayala. WiFi included. Ideal for students and young professionals.',
                 'category' => $studio,
-                'image' => 'listing-studio.jpg',
+                'image' => '693b279e9ee3f.jpg',
             ],
             [
                 'name' => 'Greenview 1BR — Quezon City',
                 'price' => 18000.0,
                 'description' => 'Spacious one-bedroom with balcony. Pet-friendly building, 24/7 security.',
                 'category' => $oneBr,
-                'image' => 'listing-1br.jpg',
+                'image' => '693ba9889d885.jpg',
             ],
             [
                 'name' => 'Harbor Loft — Pasig',
                 'price' => 22000.0,
                 'description' => 'Modern loft near Ortigas. Gym and pool access. Move-in ready.',
                 'category' => $oneBr,
-                'image' => 'listing-loft.jpg',
+                'image' => '693bc8cfaba83.jpg',
             ],
         ];
 

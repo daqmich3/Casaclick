@@ -11,8 +11,10 @@ if [ -n "${DATABASE_URL}" ]; then
   echo "Running database migrations..."
   php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration 2>&1 || true
 
-  echo "Ensuring demo login accounts exist..."
+  echo "Bootstrapping demo users + listings (same as local fixtures)..."
   php bin/console app:bootstrap-users --no-interaction 2>&1 || true
+
+  php bin/console cache:clear --env=prod --no-warmup 2>/dev/null || true
 else
   echo "WARN: DATABASE_URL is not set — skipping migrations and demo users."
 fi
