@@ -1,34 +1,42 @@
-# CasaClick — Railway / Docker (PHP 8.2 + Webpack Encore)
-FROM php:8.2-cli
+# CasaClick — multi-stage build for Railway (no NodeSource curl script)
 
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    curl \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Node 20 for Encore (Debian packages on php image are often too old)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
+# 1) PHP dependencies
+FROM composer:2 AS vendor
 WORKDIR /app
 ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV APP_ENV=prod
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-interaction --optimize-autoloader
 
 COPY . .
+RUN composer install --no-dev --no-scripts --no-interaction --optimize-autoloader
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts \
-    && npm ci \
-    && npm run build \
-    && php bin/console lexik:jwt:generate-keypair --skip-if-exists \
-    && mkdir -p var/cache var/log \
+# 2) Webpack Encore assets (needs vendor/ for @symfony/ux-turbo file: dep)
+FROM node:20-bookworm-slim AS assets
+WORKDIR /app
+COPY --from=vendor /app .
+RUN npm ci && npm run build
+
+# 3) Runtime
+FROM php:8.2-cli
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    unzip \
+    libzip-dev \
+    libicu-dev \
+    && docker-php-ext-install -j$(nproc) pdo pdo_mysql zip intl \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV APP_ENV=prod
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+COPY --from=vendor /app /app
+COPY --from=assets /app/public/build /app/public/build
+
+RUN mkdir -p var/cache var/log \
     && chmod +x scripts/railway-start.sh
 
 EXPOSE 8080
-
 CMD ["sh", "scripts/railway-start.sh"]

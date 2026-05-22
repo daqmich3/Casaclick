@@ -8,5 +8,10 @@
 /public/build/
 .phpunit.cache/
 tests/
-*.md
 .vscode/
+# Keep Dockerfile context small (README/docs not needed in image)
+docs/
+postman/
+nginx-main.conf
+nginx.conf
+entrypoint.sh

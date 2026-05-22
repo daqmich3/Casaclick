@@ -1,15 +1,13 @@
-# Railway deploy config — CasaClick Symfony (websitedev)
-# https://docs.railway.app/guides/php
-#
-# Build must NOT run migrations or cache:clear against DATABASE_URL (MySQL is not ready at build time).
-# Migrations run on container start via scripts/railway-start.sh
+# Railway — CasaClick (Docker multi-stage build)
+# https://docs.railway.app/reference/config-as-code
 
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
+# CMD is set in Dockerfile; startCommand runs migrations then PHP server
 startCommand = "sh scripts/railway-start.sh"
 healthcheckPath = "/api/mobile/health"
-healthcheckTimeout = 120
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
