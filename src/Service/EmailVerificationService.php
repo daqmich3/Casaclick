@@ -94,10 +94,8 @@ class EmailVerificationService
         ]);
     }
 
-    /**
-     * True when Symfony would use the null transport (discards mail with no error).
-     */
-    private function isMailTransportDisabled(): bool
+    /** True when Symfony would use the null transport (discards mail with no error). */
+    public function isMailTransportDisabled(): bool
     {
         $dsn = trim($this->mailerDsn);
 

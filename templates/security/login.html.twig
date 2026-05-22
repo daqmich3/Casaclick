@@ -29,6 +29,15 @@
 
             {% include '_partials/cc_dismissible_flashes.html.twig' %}
 
+            {% if app.environment == 'prod' %}
+            <div class="alert alert-info" style="margin-bottom:1rem;padding:12px;border-radius:8px;background:#f0f7ff;border:1px solid #b8d4f0;font-size:0.9rem">
+                <strong>Demo login</strong> (created automatically on deploy if the database is empty):<br>
+                Tenant: <code>tenant@example.com</code> / <code>tenant2222</code><br>
+                Landlord: <code>landlord@example.com</code> / <code>landlord3333</code><br>
+                Admin: <code>admin@example.com</code> / <code>admin1234</code>
+            </div>
+            {% endif %}
+
             {% set v = app.request.query.get('verification') %}
             {% if v == 'success' %}
                 {% include '_partials/cc_flash_item.html.twig' with {

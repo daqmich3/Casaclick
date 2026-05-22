@@ -76,9 +76,23 @@ class RegistrationController extends AbstractController
                 $form->get('plainPassword')->getData()
             );
             $user->setPassword($hashedPassword);
-            $user->setEmailVerified(false);
 
             $em->persist($user);
+
+            // Railway / demo: no real mailer — allow sign-in immediately after register.
+            if ($verificationService->isMailTransportDisabled()) {
+                $user->setEmailVerified(true);
+                $user->setVerificationToken(null);
+                $em->flush();
+                $this->addFlash(
+                    'success',
+                    'Account created. You can sign in now. (Email auto-verified — outgoing mail is not configured on this server.)'
+                );
+
+                return $this->redirectToRoute('app_login');
+            }
+
+            $user->setEmailVerified(false);
             $em->flush();
 
             try {
@@ -86,9 +100,13 @@ class RegistrationController extends AbstractController
                 $verificationService->sendVerificationEmail($user);
                 $em->flush(); // persist verification token
             } catch (MailNotConfiguredException $e) {
-                $logger->error('Registration: mail not configured.', ['exception' => $e]);
+                $user->setEmailVerified(true);
+                $user->setVerificationToken(null);
                 $em->flush();
-                $this->addFlash('error', $e->getMessage());
+                $this->addFlash(
+                    'success',
+                    'Account created. You can sign in now. (Verification email could not be sent.)'
+                );
 
                 return $this->redirectToRoute('app_login');
             } catch (\Throwable $e) {

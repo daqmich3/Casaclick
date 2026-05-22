@@ -54,8 +54,12 @@ class SecurityEventListener implements EventSubscriberInterface
         $prefix = $primaryRole === 'ROLE_TENANT' ? 'Customer login: ' : 'User login: ';
         $log->setTargetData($prefix . $username . ($userId !== null ? ' (ID: ' . $userId . ')' : ''));
 
-        $this->em->persist($log);
-        $this->em->flush();
+        try {
+            $this->em->persist($log);
+            $this->em->flush();
+        } catch (\Throwable) {
+            // Never block login if activity_log is missing or DB is unavailable.
+        }
     }
 
     public function onLogout(LogoutEvent $event): void
@@ -84,7 +88,10 @@ class SecurityEventListener implements EventSubscriberInterface
         $prefix = $primaryRole === 'ROLE_TENANT' ? 'Customer logout: ' : 'User logout: ';
         $log->setTargetData($prefix . $username . ($userId !== null ? ' (ID: ' . $userId . ')' : ''));
 
-        $this->em->persist($log);
-        $this->em->flush();
+        try {
+            $this->em->persist($log);
+            $this->em->flush();
+        } catch (\Throwable) {
+        }
     }
 }

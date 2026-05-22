@@ -64,17 +64,29 @@ Common causes:
 - `landlord@example.com` / `landlord3333`
 - `tenant@example.com` / `tenant2222`
 
-## 7. Seed users and verify emails (Railway Shell)
+## 7. Login accounts (automatic)
 
-On the **web** service → **Shell**:
+On each container start, `scripts/railway-start.sh` runs:
+
+1. `doctrine:migrations:migrate`
+2. `app:bootstrap-users` — creates demo accounts **only if missing**:
+
+| Role | Email | Password |
+|------|--------|----------|
+| Tenant | `tenant@example.com` | `tenant2222` |
+| Landlord | `landlord@example.com` | `landlord3333` |
+| Admin | `admin@example.com` | `admin1234` |
+
+The login page shows these hints in **prod**.
+
+**New registrations** on Railway (`MAILER_DSN=null`) are **auto-verified** so users can sign in without email.
+
+Manual shell (optional):
 
 ```bash
-php bin/console doctrine:migrations:migrate --no-interaction
-php bin/console doctrine:fixtures:load --no-interaction
+php bin/console app:bootstrap-users
 php bin/console app:verify-legacy-user-emails --yes
 ```
-
-`fixtures:load` **erases** existing data — use only on an empty demo database.
 
 ## 8. If build still fails
 
