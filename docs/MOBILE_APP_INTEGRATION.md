@@ -4,9 +4,15 @@ CasaClick does not ship a native project inside this repository. Any iOS/Android
 
 ## Base URL
 
-Use your server origin, e.g. `https://api.example.com` or dev `http://10.0.2.2:8000` (Android emulator) / device LAN IP.
+| Environment | Base URL |
+|-------------|----------|
+| **Railway (production)** | `https://web-production-6bdab.up.railway.app` (your real domain) |
+| **Local + USB** | `http://127.0.0.1:8000` only after `adb reverse` + PHP server on PC |
+| **Local + Wi‑Fi** | `http://YOUR_PC_LAN_IP:8000` |
 
-Set the same origin in server **CORS** (`CORS_ALLOW_ORIGIN` in `.env`).
+**Do not** use `127.0.0.1` on a physical phone for production — you will see *Cannot reach CasaClick API*. See [MOBILE_CONNECT_RAILWAY.md](MOBILE_CONNECT_RAILWAY.md).
+
+Set the same origin in server **CORS** (`CORS_ALLOW_ORIGIN` in `.env` / Railway variables).
 
 ## 1. Register and verify
 
