@@ -20,6 +20,7 @@
 | `GOOGLE_OAUTH_CLIENT_SECRET` | from Google Console |
 | `MAILER_DSN` | real SMTP (not `null://null`) if you need email verify |
 | `CORS_ALLOW_ORIGIN` | include your Railway hostname |
+| `TRUSTED_PROXIES` | `127.0.0.1,REMOTE_ADDR` (optional if `config/packages/prod/framework.yaml` is deployed) |
 
 Optional: `PAYMONGO_SECRET_KEY`, `PAYMONGO_DEV_MOCK=1` for demo checkout.
 
@@ -46,7 +47,36 @@ Add Google OAuth redirect:
 
 **Healthcheck failed but build succeeded?** Link **MySQL** and set `DATABASE_URL`. The start script now runs migrations in the background so the server still listens immediately.
 
-## 6. If build still fails
+## 6. Cannot log in on the deployed site?
+
+Common causes:
+
+| Symptom | Fix |
+|---------|-----|
+| “Invalid credentials” | Database has **no users** — run fixtures (step 7) or register a new account |
+| “Email is not verified yet” | `MAILER_DSN=null` on Railway — emails never sent. Run `app:verify-legacy-user-emails` (step 7) or set real `MAILER_DSN` |
+| Login refreshes, no error | HTTPS proxy — set `TRUSTED_PROXIES` / prod `framework.yaml` (included in repo) and redeploy |
+| 500 after submit | Run migrations; check Deploy Logs |
+
+**Demo accounts** (only after `doctrine:fixtures:load`):
+
+- `admin@example.com` / `admin1234`
+- `landlord@example.com` / `landlord3333`
+- `tenant@example.com` / `tenant2222`
+
+## 7. Seed users and verify emails (Railway Shell)
+
+On the **web** service → **Shell**:
+
+```bash
+php bin/console doctrine:migrations:migrate --no-interaction
+php bin/console doctrine:fixtures:load --no-interaction
+php bin/console app:verify-legacy-user-emails --yes
+```
+
+`fixtures:load` **erases** existing data — use only on an empty demo database.
+
+## 8. If build still fails
 
 Open **Deployments** → failed deploy → **View logs**. Common fixes:
 

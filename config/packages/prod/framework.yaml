@@ -1,0 +1,7 @@
+# Railway / HTTPS reverse proxy — required for sessions and redirects on https://*.up.railway.app
+framework:
+    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port']
+    session:
+        cookie_secure: auto
+        cookie_samesite: lax
