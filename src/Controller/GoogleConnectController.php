@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\GoogleOAuthSetup;
 use App\Service\MobileGoogleOAuthBridge;
+use App\Service\MobileUserProvisioningService;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
@@ -18,16 +20,30 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class GoogleConnectController extends AbstractController
 {
-    #[Route('/connect/google', name: 'app_google_connect', methods: ['GET'])]
-    public function connect(Request $request, ClientRegistry $clientRegistry): RedirectResponse
-    {
-        // Ensure a session cookie is issued before leaving the site for Google (helps some browsers).
-        $request->getSession()->start();
+    private const SESSION_WEB_ROLE = 'web_google_role';
 
-        // Empty scopes: league/oauth2-google already sends openid, email, profile (openid first).
-        return $clientRegistry
-            ->getClient('google')
-            ->redirect([], []);
+    #[Route('/connect/google', name: 'app_google_connect', methods: ['GET'])]
+    public function connect(
+        Request $request,
+        ClientRegistry $clientRegistry,
+        GoogleOAuthSetup $googleOAuth,
+    ): RedirectResponse {
+        if (!$googleOAuth->isConfigured()) {
+            $this->addFlash('error', $googleOAuth->getConfigurationHelp());
+
+            return $this->redirectToRoute('app_login');
+        }
+
+        $session = $request->getSession();
+        $session->start();
+
+        $as = strtolower((string) $request->query->get('as', 'staff'));
+        $session->set(
+            self::SESSION_WEB_ROLE,
+            ($as === 'customer' || $as === 'tenant') ? 'ROLE_TENANT' : 'ROLE_STAFF',
+        );
+
+        return $clientRegistry->getClient('google')->redirect([], []);
     }
 
     #[Route('/connect/google/check', name: 'app_google_connect_check', methods: ['GET'])]
@@ -39,7 +55,15 @@ class GoogleConnectController extends AbstractController
         Security $security,
         LoggerInterface $logger,
         MobileGoogleOAuthBridge $mobileGoogleOAuth,
+        GoogleOAuthSetup $googleOAuth,
+        MobileUserProvisioningService $mobileUserProvisioning,
     ): Response {
+        if (!$googleOAuth->isConfigured()) {
+            $this->addFlash('error', $googleOAuth->getConfigurationHelp());
+
+            return $this->redirectToRoute('app_login');
+        }
+
         $client = $clientRegistry->getClient('google');
         try {
             // Compatible with multiple knpu/oauth2-client-bundle versions
@@ -110,22 +134,40 @@ class GoogleConnectController extends AbstractController
             return $mobileGoogleOAuth->completeForMobile($mobileRole, $email, $googleId, $name);
         }
 
+        $session = $request->getSession();
+        $webRole = (string) $session->get(self::SESSION_WEB_ROLE, 'ROLE_STAFF');
+        $session->remove(self::SESSION_WEB_ROLE);
+        if (!in_array($webRole, ['ROLE_TENANT', 'ROLE_STAFF'], true)) {
+            $webRole = 'ROLE_STAFF';
+        }
+
         $user = $em->getRepository(User::class)->findOneBy(['googleId' => $googleId])
             ?? $em->getRepository(User::class)->findOneBy(['email' => $email]);
 
         if (!$user) {
-            // Create new Staff user (Google login is for Staff)
             $user = new User();
             $user->setEmail($email);
             $user->setName($name);
             $user->setGoogleId($googleId);
-            $user->setRoles(['ROLE_STAFF']);
-            $user->setEmailVerified(true); // Google-verified
+            $user->setRoles([$webRole]);
+            $user->setEmailVerified(true);
             $user->setPassword($passwordHasher->hashPassword($user, bin2hex(random_bytes(32))));
             $em->persist($user);
+            if ($webRole === 'ROLE_TENANT') {
+                $mobileUserProvisioning->ensureTenantProfile($user);
+            }
         } else {
+            if (!$user->isEnabled()) {
+                $this->addFlash('error', 'Your account has been disabled. Please contact support.');
+
+                return $this->redirectToRoute('app_login');
+            }
+
             $user->setGoogleId($googleId);
-            $user->setEmailVerified(true); // Auto-verify on Google login
+            $user->setEmailVerified(true);
+            if ($webRole === 'ROLE_TENANT') {
+                $mobileUserProvisioning->ensureTenantProfile($user);
+            }
         }
 
         $em->flush();

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\GoogleOAuthSetup;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,7 +11,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     #[Route(path: '/login', name: 'app_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, GoogleOAuthSetup $googleOAuth): Response
     {
         // If already logged in, redirect based on role
         if ($this->getUser()) {
@@ -26,8 +27,9 @@ class SecurityController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render('security/login.html.twig', [
-            'last_username' => $lastUsername, 
-            'error' => $error
+            'last_username' => $lastUsername,
+            'error' => $error,
+            'google_oauth_ready' => $googleOAuth->isConfigured(),
         ]);
     }
 

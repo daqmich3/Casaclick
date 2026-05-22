@@ -9,6 +9,7 @@ parameters:
     paymongo_secret_fallback: ''
     paymongo_dev_mock_default: '0'
     paymongo_default_uri: 'http://127.0.0.1:8000'
+    google_oauth_secret_fallback: ''
 
 services:
     # default configuration for services in *this* file
@@ -35,6 +36,12 @@ services:
         arguments:
             $primaryClientId: '%env(trim:GOOGLE_OAUTH_CLIENT_ID)%'
             $mobileWebClientId: '%env(default::GOOGLE_MOBILE_WEB_CLIENT_ID)%'
+
+    App\Service\GoogleOAuthSetup:
+        arguments:
+            $clientId: '%env(trim:GOOGLE_OAUTH_CLIENT_ID)%'
+            $clientSecret: '%env(default:google_oauth_secret_fallback:GOOGLE_OAUTH_CLIENT_SECRET)%'
+            $defaultUri: '%env(default:paymongo_default_uri:DEFAULT_URI)%'
 
     App\Service\PaymongoService:
         arguments:

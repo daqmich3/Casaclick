@@ -86,10 +86,15 @@
                     <i class="fa fa-sign-in"></i> Sign in
                 </button>
 
+                {% if google_oauth_ready|default(false) %}
                 <div class="cc-auth-divider"><span>or</span></div>
-                <a href="{{ path('app_google_connect') }}" class="cc-btn-google" title="Staff: Sign in with Google">
+                <a href="{{ path('app_google_connect', {as: 'customer'}) }}" class="cc-btn-google" style="margin-bottom:8px">
+                    <i class="fa fa-google"></i> Sign in with Google
+                </a>
+                <a href="{{ path('app_google_connect', {as: 'staff'}) }}" class="cc-btn-google" style="font-size:0.9rem;opacity:0.95" title="Staff dashboard access">
                     <i class="fa fa-google"></i> Sign in with Google (Staff)
                 </a>
+                {% endif %}
             </form>
 
             <div class="cc-auth-footer">
