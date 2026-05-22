@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In setup — CasaClick</title>
+    {{ encore_entry_link_tags('auth') }}
+    <style>
+        .go-help { max-width: 720px; margin: 2rem auto; padding: 0 1rem 2rem; font-family: system-ui, sans-serif; color: #3e2723; }
+        .go-help h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .go-help .status { padding: 12px 14px; border-radius: 8px; margin: 1rem 0; }
+        .go-help .status.ok { background: #e8f5e9; border: 1px solid #a5d6a7; }
+        .go-help .status.warn { background: #fff8e1; border: 1px solid #ffe082; }
+        .go-help pre { background: #f5f5f5; padding: 10px 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; }
+        .go-help ol { line-height: 1.7; }
+        .go-help a { color: #5c4033; }
+        .go-help .copy-hint { font-size: 0.85rem; color: #666; }
+    </style>
+</head>
+<body class="cc-auth-page">
+<div class="go-help">
+    <p><a href="{{ path('app_login') }}"><i class="fa fa-arrow-left"></i> Back to login</a></p>
+
+    <h1>Google Sign-In setup</h1>
+    <p>Use this page to copy the exact values for <strong>Google Cloud Console</strong> and <strong>Railway</strong>.</p>
+
+    {% if configured %}
+        <div class="status ok"><strong>Server:</strong> Google OAuth is configured. You can use the buttons on the login page.</div>
+    {% else %}
+        <div class="status warn"><strong>Server:</strong> Missing <code>GOOGLE_OAUTH_CLIENT_SECRET</code> (and/or Client ID). Add them in Railway, then redeploy.</div>
+    {% endif %}
+
+    <h2>1. Google Cloud — OAuth client (Web application)</h2>
+    <p><a href="{{ console_credentials_url }}" target="_blank" rel="noopener">Open Credentials</a></p>
+    <p class="copy-hint">Authorized JavaScript origins — add this line:</p>
+    <pre>{{ javascript_origin }}</pre>
+    <p class="copy-hint">Authorized redirect URIs — add this line:</p>
+    <pre>{{ callback_url }}</pre>
+    <p>Client ID (for Railway <code>GOOGLE_OAUTH_CLIENT_ID</code>):</p>
+    <pre>{{ client_id }}</pre>
+
+    <h2>2. Google Cloud — Test users (required while app is in Testing)</h2>
+    <p><a href="{{ console_consent_url }}" target="_blank" rel="noopener">Open OAuth consent screen</a> → <strong>Test users</strong> → <strong>Add users</strong></p>
+    <p>Add <strong>each Gmail</strong> you want to sign in with (e.g. <code>you@gmail.com</code>). Only those emails can use Google Sign-In until you publish the app.</p>
+
+    <h2>3. Railway — web service variables</h2>
+    <pre>GOOGLE_OAUTH_CLIENT_ID={{ client_id }}
+GOOGLE_OAUTH_CLIENT_SECRET=paste_secret_from_google_console
+DEFAULT_URI={{ javascript_origin }}</pre>
+    <p>Save → <strong>Redeploy</strong> the web service.</p>
+
+    <h2>4. Sign in on CasaClick</h2>
+    <ol>
+        <li>Open <a href="{{ path('app_login') }}">Login</a></li>
+        <li>Click <strong>Sign in with Google</strong> (customer) or <strong>(Staff)</strong></li>
+        <li>Choose a Gmail that you added as a <strong>Test user</strong></li>
+    </ol>
+
+    <p><a href="{{ path('app_google_connect', {as: 'customer'}) }}" class="cc-btn-google" style="display:inline-flex;margin-top:1rem"><i class="fa fa-google"></i> Try Google Sign-In now</a></p>
+</div>
+{{ encore_entry_script_tags('auth') }}
+</body>
+</html>

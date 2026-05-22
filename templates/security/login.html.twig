@@ -86,15 +86,18 @@
                     <i class="fa fa-sign-in"></i> Sign in
                 </button>
 
-                {% if google_oauth_ready|default(false) %}
                 <div class="cc-auth-divider"><span>or</span></div>
+                {% if google_oauth_ready|default(false) %}
                 <a href="{{ path('app_google_connect', {as: 'customer'}) }}" class="cc-btn-google" style="margin-bottom:8px">
                     <i class="fa fa-google"></i> Sign in with Google
                 </a>
-                <a href="{{ path('app_google_connect', {as: 'staff'}) }}" class="cc-btn-google" style="font-size:0.9rem;opacity:0.95" title="Staff dashboard access">
+                <a href="{{ path('app_google_connect', {as: 'staff'}) }}" class="cc-btn-google" style="font-size:0.9rem;opacity:0.95;margin-bottom:8px" title="Staff dashboard access">
                     <i class="fa fa-google"></i> Sign in with Google (Staff)
                 </a>
+                {% else %}
+                <p style="font-size:0.9rem;color:#666;margin-bottom:8px">Google Sign-In needs the client secret on the server.</p>
                 {% endif %}
+                <a href="{{ path('app_google_oauth_help') }}" style="font-size:0.9rem;color:#5c4033">Google Sign-In setup (add Test users &amp; Railway secret)</a>
             </form>
 
             <div class="cc-auth-footer">
