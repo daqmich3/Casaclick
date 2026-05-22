@@ -40,8 +40,11 @@ Add Google OAuth redirect:
 
 ## 5. Verify
 
-- `https://YOUR-APP.up.railway.app/api/mobile/health` → `"success": true`
+- `https://YOUR-APP.up.railway.app/railway-health.php` → `{"ok":true}` (Railway health probe)
+- `https://YOUR-APP.up.railway.app/api/mobile/health` → `"success": true` (Symfony API)
 - `/home` loads with CSS (Webpack build runs in CI)
+
+**Healthcheck failed but build succeeded?** Link **MySQL** and set `DATABASE_URL`. The start script now runs migrations in the background so the server still listens immediately.
 
 ## 6. If build still fails
 

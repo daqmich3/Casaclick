@@ -8,6 +8,7 @@ dockerfilePath = "Dockerfile"
 [deploy]
 # CMD is set in Dockerfile; startCommand runs migrations then PHP server
 startCommand = "sh scripts/railway-start.sh"
-healthcheckPath = "/api/mobile/health"
-healthcheckTimeout = 300
+# Lightweight probe (no Symfony/DB). App API: /api/mobile/health
+healthcheckPath = "/railway-health.php"
+healthcheckTimeout = 120
 restartPolicyType = "on_failure"
