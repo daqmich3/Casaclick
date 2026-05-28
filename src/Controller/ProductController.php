@@ -268,17 +268,8 @@ final class ProductController extends AbstractController
         $product->setStatus('approved');
         $entityManager->flush();
 
-        // Log and notify landlord
+        // Log action
         $this->activityLogService->logAction($this->getUser(), 'APPROVE_LISTING', $product);
-        if ($product->getCreatedBy()) {
-            $this->notificationService->notifyUser(
-                $product->getCreatedBy(),
-                'listing_approved',
-                sprintf('Your listing "%s" has been approved by the admin.', $product->getName()),
-                'Product',
-                $product->getId()
-            );
-        }
 
         $this->addFlash('success', 'Listing approved and is now visible in Active Listings.');
 
@@ -299,17 +290,8 @@ final class ProductController extends AbstractController
         $product->setStatus('rejected');
         $entityManager->flush();
 
-        // Log and notify landlord
+        // Log action
         $this->activityLogService->logAction($this->getUser(), 'REJECT_LISTING', $product);
-        if ($product->getCreatedBy()) {
-            $this->notificationService->notifyUser(
-                $product->getCreatedBy(),
-                'listing_rejected',
-                sprintf('Your listing "%s" has been rejected by the admin.', $product->getName()),
-                'Product',
-                $product->getId()
-            );
-        }
 
         $this->addFlash('success', 'Listing has been rejected.');
 

@@ -129,7 +129,7 @@ class GoogleAuthController extends AbstractController
     private function resolveNewUserRole(array $body): string
     {
         $role = (string) ($body['role'] ?? 'ROLE_TENANT');
-        if (!in_array($role, ['ROLE_TENANT', 'ROLE_LANDLORD'], true)) {
+        if (!in_array($role, ['ROLE_TENANT', 'ROLE_LANDLORD', 'ROLE_STAFF'], true)) {
             return 'ROLE_TENANT';
         }
 

@@ -96,17 +96,6 @@ final class ApplicationController extends AbstractController
         $application->setStatus('approved');
         $entityManager->flush();
 
-        // Notify tenant
-        if ($application->getTenant()) {
-            $this->notificationService->notifyUser(
-                $application->getTenant(),
-                'application_approved',
-                sprintf('Your application for listing "%s" has been approved by the landlord.', $application->getListing()?->getName() ?? 'Unknown'),
-                'Application',
-                $application->getId()
-            );
-        }
-
         $this->addFlash('success', 'Application approved successfully!');
         return $this->redirectToRoute('app_application_index');
     }

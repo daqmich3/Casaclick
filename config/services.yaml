@@ -10,6 +10,8 @@ parameters:
     paymongo_dev_mock_default: '0'
     paymongo_default_uri: 'http://127.0.0.1:8000'
     google_oauth_secret_fallback: ''
+    ws_broadcast_url_fallback: ''
+    ws_internal_secret_fallback: ''
 
 services:
     # default configuration for services in *this* file
@@ -48,3 +50,8 @@ services:
             $secretKey: '%env(default:paymongo_secret_fallback:PAYMONGO_SECRET_KEY)%'
             $devMock: '%env(bool:default:paymongo_dev_mock_default:PAYMONGO_DEV_MOCK)%'
             $appBaseUrl: '%env(default:paymongo_default_uri:DEFAULT_URI)%'
+
+    App\Service\WebSocketBroadcastService:
+        arguments:
+            $broadcastUrl: '%env(default:ws_broadcast_url_fallback:WS_BROADCAST_URL)%'
+            $internalSecret: '%env(default:ws_internal_secret_fallback:WS_INTERNAL_SECRET)%'

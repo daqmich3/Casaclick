@@ -201,20 +201,6 @@ final class PaymentController extends AbstractController
         $payment->setProcessedBy($user);
         $entityManager->flush();
 
-        // Notify tenant about payment approval
-        if ($application->getTenant()) {
-            $this->notificationService->notifyUser(
-                $application->getTenant(),
-                'payment_approved',
-                sprintf('Your payment of ₱%s for listing "%s" has been approved.', 
-                    number_format((float)$payment->getAmount(), 2),
-                    $application->getListing()->getName()
-                ),
-                'Payment',
-                $payment->getId()
-            );
-        }
-
         $this->addFlash('success', 'Payment approved successfully!');
         return $this->redirectToRoute('app_payment_index', ['applicationId' => $application->getId()]);
     }
@@ -235,20 +221,6 @@ final class PaymentController extends AbstractController
         $payment->setStatus('failed');
         $payment->setProcessedBy($user);
         $entityManager->flush();
-
-        // Notify tenant about payment rejection
-        if ($application->getTenant()) {
-            $this->notificationService->notifyUser(
-                $application->getTenant(),
-                'payment_rejected',
-                sprintf('Your payment of ₱%s for listing "%s" has been rejected. Please contact the landlord.', 
-                    number_format((float)$payment->getAmount(), 2),
-                    $application->getListing()->getName()
-                ),
-                'Payment',
-                $payment->getId()
-            );
-        }
 
         $this->addFlash('warning', 'Payment rejected.');
         return $this->redirectToRoute('app_payment_index', ['applicationId' => $application->getId()]);
